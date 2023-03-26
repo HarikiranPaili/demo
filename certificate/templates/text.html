@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>KPMG Demo of Error Finding</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+</head>
+
+<body>
+<div style="background-image: linear-gradient(#255398, white);">
+
+    <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <img style="width: 130px;height:107px;" src="/static/img/kpmg-logo-vector-1.png" alt="KPMG_logo"/>
+                            <div class="sa-menu">
+                                <ul class="d-flex align-items-center">
+
+                                    <li>
+                                            <a href="/" style="color:white;"> Text</a>
+                                        </li>
+                                    <li>
+                                            <a href="file" style="color:white;"> File</a>
+                                        </li>
+                                    <li>
+
+                                        </li>
+                                    <li>
+                                        </li>
+
+                                </ul>
+                            </div>
+                            <div class="menu-icon">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<div class="container">
+    <div class="col align-items-end">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                     role="alert">{{ message }}
+                    <span class="closebtn" style=" float:right;"
+                          onclick="this.parentElement.style.display='none';">x</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="dsk-card mt-5">
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
+                <form method="POST" action="text" enctype="multipart/form-data">
+	            {% csrf_token %}
+                <div class="row">
+                    <div class="mb-3 col-md-12 col-sm-12 col-lg-6">
+                        <div class="content">
+                            <textarea required placeholder="  Text To Be Check...." rows="10" cols="60" name="text"></textarea>
+                        </div>
+                    </div>
+                    <div class="mb-3 col-md-12 col-sm-12 col-lg-6">
+                        <div class="content">
+                            <textarea rows="10" cols="60" placeholder="  Response.." id="response"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 text-center">
+                        <div class="content mt-4">
+                                <button class="sa_btn bg_1" type="submit">Submit
+                                </button>
+                        </div>
+                    </div>
+
+                </div>
+                            </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/static/js/bootstrap.js"></script>
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script src="/static/js/main.js"></script>
+<script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+{#<script src="https://cdn.datatables.net/fixedheader/3.2.1/js/dataTables.fixedHeader.min.js"></script>#}
+</body>
+
+</html>

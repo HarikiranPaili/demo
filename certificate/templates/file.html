@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>KPMG Demo of Error Finding</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/bootstrap.css">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.4/css/jquery.dataTables.min.css">
+</head>
+
+<body >
+<div style="background-image: linear-gradient(#255398, white);">
+
+    <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <img style="width: 130px;height:107px;" src="/static/img/kpmg-logo-vector-1.png" alt="KPMG_logo"/>
+                            <div class="sa-menu">
+                                <ul class="d-flex align-items-center">
+
+                                    <li>
+                                            <a href="/" style="color:white;"> Text</a>
+                                        </li>
+                                    <li>
+                                            <a href="file" style="color:white;"> File</a>
+                                        </li>
+                                    <li>
+
+                                        </li>
+                                    <li>
+                                        </li>
+
+                                </ul>
+                            </div>
+                            <div class="menu-icon">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!-- profile contetn starts -->
+<div class="container">
+    <div class="col align-items-end">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show"
+                     role="alert">{{ message }}
+                    <span class="closebtn" style=" float:right;"
+                          onclick="this.parentElement.style.display='none';">x</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="dsk-card mt-5">
+        <div class="row">
+            <form method="POST" action="file" enctype="multipart/form-data">
+	{% csrf_token %}
+            <div class="col-lg-12 col-md-12">
+                <div class="row">
+            <div class="col-lg-6 col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Upload File</label>
+                                <input id="file" type="file" class="form-control" required
+                                       name="file" accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            </div>
+                            </div>
+            <div class="col-lg-6 col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Upload Keywords File</label>
+                                <input id="wordsfile" type="file" class="form-control" required
+                                       name="wordsfile" accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            </div>
+                            </div>
+
+                    <div class="col-md-12 text-center">
+                        <div class="content mt-4">
+                                <button class="sa_btn bg_1" type="submit">Submit
+                                </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- profile contetn ends -->
+<!-- tabel starts-->
+<div class="mt-5 container">
+    <div class="row">
+        <div class="col">
+            <h3>Review Status</h3>
+            <div class="table-responsive">
+                <table class="table" id="myTable">
+                    <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Time</th>
+                        <th>File</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                                            {% for i in data %}
+
+                                        <tr>
+                                            <td>Action</td>
+                                            <td>Action</td>
+                                            <td>Action</td>
+
+                    </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- tabel ends-->
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="/static/js/bootstrap.js"></script>
+<script src="/static/js/jquery-3.3.1.min.js"></script>
+<script src="/static/js/main.js"></script>
+<script src="https://cdn.datatables.net/1.11.4/js/jquery.dataTables.min.js"></script>
+{#<script src="https://cdn.datatables.net/fixedheader/3.2.1/js/dataTables.fixedHeader.min.js"></script>#}
+<script>
+
+    $(document).ready(function () {
+        let table = $('#myTable').DataTable({
+            "lengthMenu": [[10, 50, 100, -1], ["10", "50", "100", "ALL"]],
+        });
+    });
+</script>
+</body>
+
+</html>
