@@ -96,7 +96,7 @@
 <div class="mt-5 container">
     <div class="row">
         <div class="col">
-            <h3>Review Status</h3>
+            <h3>Files</h3>
             <div class="table-responsive">
                 <table class="table" id="myTable">
                     <thead>
@@ -110,9 +110,9 @@
                                             {% for i in data %}
 
                                         <tr>
-                                            <td>Action</td>
-                                            <td>Action</td>
-                                            <td>Action</td>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{i.time}}</td>
+                                            <td><a href="/media/{{ i.documents }}">Download File</a></td>
 
                     </tr>
                         {% endfor %}

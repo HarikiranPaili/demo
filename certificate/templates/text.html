@@ -60,17 +60,25 @@
     <div class="dsk-card mt-5">
         <div class="row">
             <div class="col-lg-12 col-md-12">
-                <form method="POST" action="text" enctype="multipart/form-data">
+                <form method="POST" action="\" enctype="multipart/form-data">
 	            {% csrf_token %}
                 <div class="row">
+                                <div class="col-lg-12 col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label">Upload Keywords File</label>
+                                <input id="wordsfile" type="file" class="form-control" required
+                                       name="wordsfile" accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                            </div>
+                            </div>
+
                     <div class="mb-3 col-md-12 col-sm-12 col-lg-6">
                         <div class="content">
-                            <textarea required placeholder="  Text To Be Check...." rows="10" cols="60" name="text"></textarea>
+                            <textarea required placeholder="  Text To Be Check...." rows="10" cols="60" name="text">{% if text %}{{ text }}{% endif %}</textarea>
                         </div>
                     </div>
                     <div class="mb-3 col-md-12 col-sm-12 col-lg-6">
                         <div class="content">
-                            <textarea rows="10" cols="60" placeholder="  Response.." id="response"></textarea>
+                            <textarea rows="10" cols="60" placeholder="  Response.." id="response">{% if convertedtext %}{{ convertedtext }}{% endif %}</textarea>
                         </div>
                     </div>
 

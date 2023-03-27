@@ -1,6 +1,6 @@
 import datetime
 
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from io import BytesIO
@@ -23,15 +23,30 @@ from django.core.files.base import ContentFile
 # importing formset_factory
 
 def text(request):
+    context = {}
     if request.method == 'POST':
+        wordsfile = request.FILES['wordsfile']
         text = request.POST.get('text')
-    return render(request, "text.html")
+        context['text'] = text
+        workbook = openpyxl.load_workbook(wordsfile)
+        worksheet = workbook.active
+        for row in worksheet.iter_rows(min_row=2, values_only=True):
+            # Get the values from the current row
+            cell1_value = row[0]
+            cell2_value = row[1]
+            if cell1_value in text:
+                text = text.replace(cell1_value, cell2_value)
+                context['convertedtext'] = text
+    return render(request, "text.html",context)
 
 
 import io
 from django.core.files import File
 
 def file(request):
+    context = {}
+    data = Files.objects.all()
+    context['data'] = data
     if request.method == 'POST':
         file = request.FILES['file']
         wordsfile = request.FILES['wordsfile']
@@ -39,8 +54,7 @@ def file(request):
         workbook = openpyxl.load_workbook(file)
 
         # Load the Keywords sheet
-        file_path = 'C:/Users/USER/Keywords.xlsx'
-        workbook_1 = openpyxl.load_workbook(file_path)
+        workbook_1 = openpyxl.load_workbook(wordsfile)
         keywords_sheet = workbook_1['Sheet1']
 
         # Create a dictionary to map each keyword to its alternatives
@@ -63,13 +77,8 @@ def file(request):
                     matched_keywords = set()
                     for i, word in enumerate(words):
                         for keyword, alternatives in keywords_dict.items():
-                            print('keyword')
-                            print(keyword)
-                            print('word')
-                            print(s)
-                            if keyword in words:
-                                print('keyword')
-                                print(keyword)
+                            if keyword == word:
+                            # if keyword in word:
                                 # Highlight the keyword with yellow background color and red font color
                                 cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
 
@@ -78,6 +87,7 @@ def file(request):
                                 keyword_length = len(keyword)
                                 error_message = "(^Error)"
                                 if keyword_position > 0 and word[keyword_position-1].isalpha():
+                                # if word[keyword_position-1].isalpha():
                                     # If the keyword is preceded by an alphabet, add the error message with a space
                                     error_message = " " + error_message
                                 words[i] = word[:keyword_position] + keyword + error_message + word[keyword_position+keyword_length:]
@@ -108,9 +118,10 @@ def file(request):
         workbook.save(buffer)
         content = ContentFile(buffer.getvalue())
         if content:
-            processed_file = Files.objects.create(time=str(datetime.datetime.now().time()))
+            processed_file = Files.objects.create(time=str(datetime.datetime.now().replace(second=0,microsecond=0)))
             processed_file.documents.save('processed_'+str(file), content)
-    return render(request,'file.html')
+        return redirect('file')
+    return render(request,'file.html',context)
 
 # import ipywidgets as widgets
 #         import openpyxl
