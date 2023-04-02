@@ -18,6 +18,15 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import PatternFill, Font, Color, colors, Alignment, NamedStyle, Border, Side, PatternFill, Protection, Color
 from .models import *
 from django.core.files.base import ContentFile
+import docx
+import openpyxl
+from docx.shared import RGBColor
+import io
+from django.core.files import File
+from django.conf import settings
+from django.core.files.storage import default_storage
+
+
 # relative import of forms
 
 # importing formset_factory
@@ -40,9 +49,6 @@ def text(request):
     return render(request, "text.html",context)
 
 
-import io
-from django.core.files import File
-
 def file(request):
     context = {}
     data = Files.objects.all()
@@ -50,76 +56,115 @@ def file(request):
     if request.method == 'POST':
         file = request.FILES['file']
         wordsfile = request.FILES['wordsfile']
+        if str(file).endswith(".docx"):
+            # Open the Word file
+            doc = docx.Document(file)
+            # Open the Keywords file
+            wb = openpyxl.load_workbook(wordsfile)
+            ws = wb.active
+
+            # Loop through each row of the Keywords file
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                keyword = row[0]
+                alt_word = row[1]
+
+                # Loop through each paragraph in the Word file
+                for para in doc.paragraphs:
+                    # Check if the paragraph contains the keyword
+                    if keyword in para.text:
+                        # Add the error word and suggestion next to the keyword
+                        para.add_run(f" ^Error: consider using '{alt_word}'")
+
+                        # Highlight the error word in red
+                        for run in para.runs:
+                            if '^Error' in run.text:
+                                font = run.font
+                                font.color.rgb = RGBColor(255, 0, 0)
+
+            # Save the reviewed Word file on the desktop
+            buffer = io.BytesIO()
+            doc.save(buffer)
+            content = ContentFile(buffer.getvalue())
+            if content:
+                processed_file = Files.objects.create(
+                    time=str(datetime.datetime.now().replace(second=0, microsecond=0)))
+                processed_file.documents.save('processed_' + str(file), content)
+
+            #doc.save('C:/Users/rpaili/Desktop/Pro_Dummy.docx')
+        else:
+            workbook = openpyxl.load_workbook(file)
+
+            # Load the Keywords sheet
+            workbook_1 = openpyxl.load_workbook(wordsfile)
+            keywords_sheet = workbook_1['Sheet1']
+
+            # Create a dictionary to map each keyword to its alternatives
+            keywords_dict = {}
+            for row in keywords_sheet.iter_rows(min_row=2, values_only=True):
+                keyword = row[0]
+                alternatives = row[1].split(', ') if row[1] else []
+                keywords_dict[keyword] = alternatives
+
+            # Select the first worksheet
+            worksheet = workbook.active
+
+            # Loop through each cell in the worksheet
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    # Check for keywords and highlight the cell if found
+                    if cell.value:
+                        value = str(cell.value) if not isinstance(cell.value, str) else cell.value
+                        words = value.split()
+                        matched_keywords = set()
+                        for i, word in enumerate(words):
+                            for keyword, alternatives in keywords_dict.items():
+                                if keyword == word:
+                                    # if keyword in word:
+                                    # Highlight the keyword with yellow background color and red font color
+                                    cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+                                    # Add the "(^Error)" word after the identified keyword
+                                    keyword_position = word.find(keyword)
+                                    keyword_length = len(keyword)
+                                    error_message = "(^Error)"
+                                    if keyword_position > 0 and word[keyword_position - 1].isalpha():
+                                        # if word[keyword_position-1].isalpha():
+                                        # If the keyword is preceded by an alphabet, add the error message with a space
+                                        error_message = " " + error_message
+                                    words[i] = word[:keyword_position] + keyword + error_message + word[
+                                                                                                   keyword_position + keyword_length:]
+
+                                    # Add the matched keyword to the set of matched keywords
+                                    matched_keywords.add(keyword)
+
+                                    # Construct the comment text to include alternatives for all matched keywords
+                                    comment_text = ''
+                                    i = 1
+                                    for keyword in matched_keywords:
+                                        alternatives = keywords_dict[keyword]
+                                        if alternatives:
+                                            comment_text += f"{i}. '{keyword}': {', '.join(alternatives)}\n"
+                                            i += 1
+                                    if comment_text:
+                                        comment_text = "Consider alternatives for:\n" + comment_text.strip()
+
+                                        # Add comment to the cell
+                                        comment = Comment(comment_text, "Comment Author")
+                                        cell.comment = comment
+
+                                    value = " ".join(words)
+                                    cell.value = value
+
+            # Save the processed workbook to a Django FileField
+            buffer = io.BytesIO()
+            workbook.save(buffer)
+            content = ContentFile(buffer.getvalue())
+            if content:
+                processed_file = Files.objects.create(
+                    time=str(datetime.datetime.now().replace(second=0, microsecond=0)))
+                processed_file.documents.save('processed_' + str(file), content)
+
         #file_stream = io.BytesIO(file)
-        workbook = openpyxl.load_workbook(file)
-
-        # Load the Keywords sheet
-        workbook_1 = openpyxl.load_workbook(wordsfile)
-        keywords_sheet = workbook_1['Sheet1']
-
-        # Create a dictionary to map each keyword to its alternatives
-        keywords_dict = {}
-        for row in keywords_sheet.iter_rows(min_row=2, values_only=True):
-            keyword = row[0]
-            alternatives = row[1].split(', ') if row[1] else []
-            keywords_dict[keyword] = alternatives
-
-        # Select the first worksheet
-        worksheet = workbook.active
-
-        # Loop through each cell in the worksheet
-        for row in worksheet.iter_rows():
-            for cell in row:
-                # Check for keywords and highlight the cell if found
-                if cell.value:
-                    value = str(cell.value) if not isinstance(cell.value, str) else cell.value
-                    words = value.split()
-                    matched_keywords = set()
-                    for i, word in enumerate(words):
-                        for keyword, alternatives in keywords_dict.items():
-                            if keyword == word:
-                            # if keyword in word:
-                                # Highlight the keyword with yellow background color and red font color
-                                cell.fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
-
-                                # Add the "(^Error)" word after the identified keyword
-                                keyword_position = word.find(keyword)
-                                keyword_length = len(keyword)
-                                error_message = "(^Error)"
-                                if keyword_position > 0 and word[keyword_position-1].isalpha():
-                                # if word[keyword_position-1].isalpha():
-                                    # If the keyword is preceded by an alphabet, add the error message with a space
-                                    error_message = " " + error_message
-                                words[i] = word[:keyword_position] + keyword + error_message + word[keyword_position+keyword_length:]
-
-                                # Add the matched keyword to the set of matched keywords
-                                matched_keywords.add(keyword)
-
-                                # Construct the comment text to include alternatives for all matched keywords
-                                comment_text = ''
-                                i = 1
-                                for keyword in matched_keywords:
-                                    alternatives = keywords_dict[keyword]
-                                    if alternatives:
-                                        comment_text += f"{i}. '{keyword}': {', '.join(alternatives)}\n"
-                                        i += 1
-                                if comment_text:
-                                    comment_text = "Consider alternatives for:\n" + comment_text.strip()
-
-                                    # Add comment to the cell
-                                    comment = Comment(comment_text, "Comment Author")
-                                    cell.comment = comment
-
-                                value = " ".join(words)
-                                cell.value = value
-
-        # Save the processed workbook to a Django FileField
-        buffer = io.BytesIO()
-        workbook.save(buffer)
-        content = ContentFile(buffer.getvalue())
-        if content:
-            processed_file = Files.objects.create(time=str(datetime.datetime.now().replace(second=0,microsecond=0)))
-            processed_file.documents.save('processed_'+str(file), content)
         return redirect('file')
     return render(request,'file.html',context)
 
@@ -261,3 +306,5 @@ def file(request):
 #         process_button.on_click(on_process_button_clicked)
 #         save_button.on_click(save_excel)
 #         clear_button.on_click(clear_widgets)
+
+
